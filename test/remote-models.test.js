@@ -200,6 +200,29 @@ describe('Remote model tests', function() {
       });
   });
 
+  describe('Model.exists(id, callback)', function() {
+    it('should return true when the model with the given id exists',
+      function(done) {
+        ServerModel.create({first: 'max'}, function(err, user) {
+          if (err) return done(err);
+          ClientModel.exists(user.id, function(err, exist) {
+            if (err) return done(err);
+            assert.equal(exist, true);
+            done();
+          });
+        });
+      });
+
+    it('should return false when there is no model with the given id',
+      function(done) {
+        ClientModel.exists('user-id-does-not-exist', function(err, exist) {
+          if (err) return done(err);
+          assert.equal(exist, false);
+          done();
+        });
+      });
+  });
+
   describe('Model.findById(id, callback)', function() {
     it('should return null when an instance does not exist',
       function(done) {
@@ -349,5 +372,18 @@ describe('Remote model tests', function() {
           hasOneChild = child;
         });
     }
+  });
+
+  describe('Model.updateAll([where], [data])', () => {
+    it('returns the count of updated instances in data source', async () => {
+      await ServerModel.create({first: 'baby', age: 1});
+      await ServerModel.create({first: 'grandma', age: 80});
+
+      const result = await ClientModel.updateAll(
+        {age: {lt: 6}},
+        {last: 'young'},
+      );
+      assert.deepEqual(result, {count: 1});
+    });
   });
 });
